@@ -13,21 +13,17 @@ var allData;
 var scaleX = d3.scaleLinear()
                  .domain([0,450000])
                  .range([0,600])
-                 .nice();
+                 .nice(); // making scale end in round number
 
 var scaleY = d3.scaleLinear()
                 .domain([150000,0])
                 .range([0,400])
-                .nice();
-
-// appending div for tooltip
-var div = d3.select("body")
-              .append("div")
-              .attr("class", "tooltip")
-              .style("opacity", 0);
-
+                .nice(); // making scale end in round number
 
 var selectDepartment = "Boston Police Department"; // setting up toggle switch for data change
+
+var button = d3.select(".button")
+                .text(selectDepartment);
 
 d3.csv("./data_original.csv", function(error, data) {
     if (error) { throw error };
@@ -59,7 +55,7 @@ d3.csv("./data_original.csv", function(error, data) {
 
 });
 
-var colorFill = function(d) { if (d.department_name == "Boston Fire Department") {
+function colorFill(d) { if (d.department_name == "Boston Fire Department") {
         return "#654321"
 } else if (d.department_name == "Boston Police Department") {
         return "#123456"
@@ -103,6 +99,25 @@ function updateData(dataPoints) {
 
 };
 
+function xLabel() {
+          svg.append("text")
+              .attr("x", 300)
+              .attr("y", 440)
+              .attr("font-size", 13)
+              .attr("text-anchor", "middle")
+              .text("Total earnings, in USD");
+};
+
+function yLabel() {
+          svg.append("text")
+               .attr("transform", "rotate(270)")
+               .attr("x", -200)
+               .attr("y", -60)
+               .attr("font-size", 13)
+               .attr("text-anchor", "middle")
+               .text("Overtime earnings, in USD");
+};
+
 function xAxis(scale) {
           svg.append("g")
               .attr("transform", "translate(0,400)")
@@ -123,32 +138,13 @@ function chartTitle() {
                .text("City of Boston PD and FD payroll, 2016");
 };
 
-function xLabel() {
-          svg.append("text")
-              .attr("x", 300)
-              .attr("y", 440)
-              .attr("font-size", 13)
-              .attr("text-anchor", "middle")
-              .text("Total earnings, in USD");
-};
-
-function yLabel() {
-          svg.append("text")
-               .attr("transform", "rotate(270)")
-               .attr("x", -200)
-               .attr("y", -60)
-               .attr("font-size", 13)
-               .attr("text-anchor", "middle")
-               .text("Overtime earnings, in USD");
-};
-
 function buttonClicked() {
   if(selectDepartment == "Boston Police Department") {
     var newData = allData.filter(function(d) {
       return d.department_name == "Boston Fire Department";
     });
-
     selectDepartment = "Boston Fire Department";
+    button.text(selectDepartment);
     updateData(newData);
 
    } else {
@@ -157,6 +153,7 @@ function buttonClicked() {
     });
 
     selectDepartment = "Boston Police Department";
+    button.text(selectDepartment);
     updateData(oldData);
   }
 };
