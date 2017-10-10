@@ -8,7 +8,7 @@ var svg = d3.select('svg')
               .attr("transform", "translate(100,100)");
 
 // creating global variable to access csv data
-var allData;
+var allData = [];
 
 var scaleX = d3.scaleLinear()
                  .domain([0,450000])
@@ -20,12 +20,13 @@ var scaleY = d3.scaleLinear()
                 .range([0,400])
                 .nice(); // making scale end in round number
 
-var selectDepartment = "Boston Police Department"; // setting up toggle switch for data change
+var selectedDepartment = "Boston Police Department"; // setting up "switch" for data change
+var unselectedDepartment = "Boston Fire Department"; // setting up initial button text
 
 var button = d3.select(".button")
-                .text(selectDepartment);
+                .text(unselectedDepartment);
 
-d3.csv("./data_original.csv", function(error, data) {
+d3.csv("./data.csv", function(error, data) {
     if (error) { throw error };
 
     allData = data; // passing data to global variable
@@ -34,13 +35,7 @@ d3.csv("./data_original.csv", function(error, data) {
     var initialData = data.filter(function(d) {
       return d.department_name == "Boston Police Department";
     });
-
-    // svg.selectAll("circle")
-    //     .data(initialData);
-    //     .enter()
-    //     .append("circle")
-    //     .attr("class", "circles");
-
+    
     // calling title and axis' labels
     chartTitle();
     xLabel();
@@ -55,12 +50,14 @@ d3.csv("./data_original.csv", function(error, data) {
 
 });
 
+
 function colorFill(d) { if (d.department_name == "Boston Fire Department") {
-        return "#654321"
+        return "#FF2819"
 } else if (d.department_name == "Boston Police Department") {
         return "#123456"
 }};
 
+//defining function to update data
 function updateData(dataPoints) {
 
         // binding data to DOM selection
@@ -69,7 +66,7 @@ function updateData(dataPoints) {
 
        // updating existing circles
        selection.transition()
-                .duration(500)
+                .duration(1000)
                 .ease(d3.easeSin)
                 .attr("cx", function(d) { return scaleX(d.total) })
                 .attr("cy", function(d) { return scaleY(d.overtime) })
@@ -77,13 +74,13 @@ function updateData(dataPoints) {
                 .attr("fill", colorFill)
                 .attr("opacity", .7);
 
-        // entering and appending new circles
+       // entering and appending new circles
         selection.enter().append("circle")
                   .attr("cx", function(d) { return scaleX(d.total) })
                   .attr("cy", function(d) { return scaleY(d.overtime) })
                   .attr("r", 0)
                     .transition()
-                    .duration(500)
+                    .duration(1000)
                     .ease(d3.easeSin)
                   .attr("r", 5)
                   .attr("fill", colorFill)
@@ -92,11 +89,20 @@ function updateData(dataPoints) {
         // removing unnecessary circles
         selection.exit()
                     .transition()
-                    .duration(100)
+                    .duration(200)
                     .ease(d3.easeSin)
                   .attr("r", 0)
                  .remove();
 
+};
+
+// defining functions to append title and labels to axis
+function chartTitle() {
+          svg.append("text")
+               .attr("x", 0)
+               .attr("y", -25)
+               .attr("font-size", 24)
+               .text("City of Boston PD and FD payroll, 2016");
 };
 
 function xLabel() {
@@ -118,6 +124,7 @@ function yLabel() {
                .text("Overtime earnings, in USD");
 };
 
+// defining functions to append axis
 function xAxis(scale) {
           svg.append("g")
               .attr("transform", "translate(0,400)")
@@ -130,30 +137,26 @@ function yAxis(scale) {
               .call(d3.axisLeft(scale));
 };
 
-function chartTitle() {
-          svg.append("text")
-               .attr("x", 0)
-               .attr("y", -25)
-               .attr("font-size", 24)
-               .text("City of Boston PD and FD payroll, 2016");
-};
-
+// defining event listener function
 function buttonClicked() {
-  if(selectDepartment == "Boston Police Department") {
+  if(selectedDepartment == "Boston Police Department") {
+    // filtering data
     var newData = allData.filter(function(d) {
       return d.department_name == "Boston Fire Department";
     });
-    selectDepartment = "Boston Fire Department";
-    button.text(selectDepartment);
-    updateData(newData);
+
+    button.text(selectedDepartment); // changing HTML button text
+    selectedDepartment = "Boston Fire Department"; // flipping "switch"
+    updateData(newData); // calling update function
 
    } else {
+    // filtering data
     var oldData = allData.filter(function(d) {
       return d.department_name == "Boston Police Department";
     });
 
-    selectDepartment = "Boston Police Department";
-    button.text(selectDepartment);
-    updateData(oldData);
+    button.text(selectedDepartment); // changing HTML button text
+    selectedDepartment = "Boston Police Department"; // flipping "switch"
+    updateData(oldData); // calling update function
   }
 };
